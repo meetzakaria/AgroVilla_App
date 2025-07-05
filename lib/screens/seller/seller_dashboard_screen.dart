@@ -14,19 +14,19 @@ class SellerDashboardScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            TextField(
-              decoration: const InputDecoration(
+            const TextField(
+              decoration: InputDecoration(
                   labelText: 'Product Name', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 10),
-            TextField(
-              decoration: const InputDecoration(
+            const TextField(
+              decoration: InputDecoration(
                   labelText: 'Description', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 10),
-            TextField(
+            const TextField(
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                   labelText: 'Price', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 10),

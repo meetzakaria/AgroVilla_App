@@ -18,8 +18,8 @@ class BuyerHomeScreen extends StatelessWidget {
   ];
 
   final List<Map<String, String>> featuredProducts = [
-    {'name': 'Fresh Peach', 'price': '\$3.50', 'image': 'assets/images/peach.jpg'},
-    {'name': 'Avocado', 'price': '\$2.20', 'image': 'assets/images/avocado.jpg'},
+    {'name': 'Fresh Peach', 'price': '\৳ 32.50', 'image': 'assets/images/peach.jpg'},
+    {'name': 'Avocado', 'price': '\৳ 22.20', 'image': 'assets/images/avocado.jpg'},
   ];
 
   @override
@@ -91,8 +91,8 @@ class BuyerHomeScreen extends StatelessWidget {
         itemCount: categories.length,
         itemBuilder: (_, index) {
           return Container(
-            margin: EdgeInsets.only(right: 12),
-            padding: EdgeInsets.all(8),
+            margin: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.all(8),
             width: 80,
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [
               BoxShadow(color: Colors.grey.withOpacity(0.1), spreadRadius: 2, blurRadius: 5),
@@ -100,9 +100,9 @@ class BuyerHomeScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(categories[index]['icon']!, style: TextStyle(fontSize: 28)),
-                SizedBox(height: 4),
-                Text(categories[index]['name']!, style: TextStyle(fontSize: 12)),
+                Text(categories[index]['icon']!, style: const TextStyle(fontSize: 28)),
+                const SizedBox(height: 4),
+                Text(categories[index]['name']!, style: const TextStyle(fontSize: 12)),
               ],
             ),
           );
@@ -114,7 +114,7 @@ class BuyerHomeScreen extends StatelessWidget {
   Widget _buildFeaturedProducts(List<Map<String, String>> products) {
     return GridView.count(
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
       childAspectRatio: 3 / 4,
       mainAxisSpacing: 10,
@@ -132,7 +132,7 @@ class BuyerHomeScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(product['name']!, style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
-                    Text(product['price']!, style: TextStyle(color: Colors.red)),
+                    Text(product['price']!, style: const TextStyle(color: Colors.red)),
                   ],
                 ),
               ),

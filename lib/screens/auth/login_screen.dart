@@ -10,11 +10,11 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final emailController = TextEditingController();
+  final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   String selectedRole = 'Customer';
 
-  final List<String> roles = ['Customer', 'Seller', 'Admin'];
+  final List<String> roles = ['Customer', 'Seller'];
 
   @override
   Widget build(BuildContext context) {
@@ -35,9 +35,9 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 30),
               TextField(
-                controller: emailController,
+                controller: phoneController,
                 decoration: const InputDecoration(
-                  labelText: 'Email',
+                  labelText: 'Phone Number',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -76,8 +76,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.pushReplacementNamed(context, '/buyerHome');
                   } else if (selectedRole == "Seller") {
                     Navigator.pushReplacementNamed(context, '/sellerDashboard');
-                  } else {
-                    // Admin dashboard build later
                   }
                 },
                 style: ElevatedButton.styleFrom(
