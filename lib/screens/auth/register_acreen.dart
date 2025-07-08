@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -10,12 +13,76 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final nameController = TextEditingController();
-  final emailController = TextEditingController();
+  final phoneController = TextEditingController(); // phoneNumber instead of email
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
   String selectedRole = 'Customer';
   final List<String> roles = ['Customer', 'Seller', 'Admin'];
+
+  bool isLoading = false;
+
+  Future<void> registerUser() async {
+    final name = nameController.text.trim();
+    final phoneNumber = phoneController.text.trim();
+    final password = passwordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
+
+    if (name.isEmpty || phoneNumber.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill all fields")),
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Passwords do not match")),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    const String apiUrl = "http://192.168.0.90:8081/api/auth/register"; // for emulator
+
+    final Map<String, dynamic> requestBody = {
+      "name": name,
+      "phoneNumber": phoneNumber,
+      "password": password,
+      "role": selectedRole,
+      "sellerStatus": selectedRole == "Seller" ? "ACTIVE" : "N/A",
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("✅ Registration Successful")),
+        );
+        Navigator.pop(context); // Go back to login
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("❌ Error: ${response.body}")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("❌ Network Error: $e")),
+      );
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,9 +112,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(height: 15),
             TextField(
-              controller: emailController,
+              controller: phoneController,
+              keyboardType: TextInputType.phone,
               decoration: const InputDecoration(
-                labelText: 'Email',
+                labelText: 'Phone Number',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -73,8 +141,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             DropdownButtonFormField<String>(
               value: selectedRole,
               items: roles
-                  .map((role) =>
-                  DropdownMenuItem(value: role, child: Text(role)))
+                  .map((role) => DropdownMenuItem(value: role, child: Text(role)))
                   .toList(),
               onChanged: (value) {
                 setState(() {
@@ -88,23 +155,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(height: 30),
             ElevatedButton(
-              onPressed: () {
-                // TODO: Registration API Integration
-              },
+              onPressed: isLoading ? null : registerUser,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green[800],
                 padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('Register', style: TextStyle(fontSize: 18)),
+              child: isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text('Register', style: TextStyle(fontSize: 18)),
             ),
             const SizedBox(height: 20),
             TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text("Already have an account? Login"))
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Already have an account? Login"),
+            )
           ],
         ),
       ),
