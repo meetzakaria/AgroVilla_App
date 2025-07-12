@@ -15,10 +15,22 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
-  String selectedRole = 'Customer';
   bool isLoading = false;
 
-  final List<String> roles = ['Customer', 'Seller'];
+  // 🔍 Helper function to extract role from JWT
+  String? extractRoleFromJwt(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return null;
+
+      final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+      final payloadMap = jsonDecode(payload);
+      return payloadMap['role'];
+    } catch (e) {
+      print("JWT decode error: $e");
+      return null;
+    }
+  }
 
   Future<void> loginUser() async {
     final phoneNumber = phoneController.text.trim();
@@ -33,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => isLoading = true);
 
-    const String apiUrl = "http://192.168.0.90:8081/api/auth/login";
+    const String apiUrl = "http://10.146.146.45:8081/api/auth/login";
 
     try {
       final response = await http.post(
@@ -45,18 +57,44 @@ class _LoginScreenState extends State<LoginScreen> {
         }),
       );
 
+      print("Login response: ${response.body}");
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final token = data['access_token'];
+        final token = data['access_token'] as String?;
+
+        if (token == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Token missing in response")),
+          );
+          setState(() => isLoading = false);
+          return;
+        }
+
+        // 🟠 JWT থেকে role বের করো
+        final role = extractRoleFromJwt(token);
+
+        if (role == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Failed to extract role from token")),
+          );
+          setState(() => isLoading = false);
+          return;
+        }
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
+        await prefs.setString('role', role);
 
-        // Navigate to respective dashboard
-        if (selectedRole == "Customer") {
+        // 🟢 Navigate based on role
+        if (role.toUpperCase() == "CUSTOMER") {
           Navigator.pushReplacementNamed(context, '/buyerHome');
-        } else if (selectedRole == "Seller") {
+        } else if (role.toUpperCase() == "SELLER") {
           Navigator.pushReplacementNamed(context, '/sellerDashboard');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Unknown role: $role")),
+          );
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -92,6 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 30),
               TextField(
                 controller: phoneController,
+                keyboardType: TextInputType.phone,
                 decoration: const InputDecoration(
                   labelText: 'Phone Number',
                   border: OutlineInputBorder(),
@@ -106,38 +145,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 20),
-              DropdownButtonFormField<String>(
-                value: selectedRole,
-                items: roles
-                    .map((role) =>
-                    DropdownMenuItem(value: role, child: Text(role)))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedRole = value!;
-                  });
-                },
-                decoration: const InputDecoration(
-                  labelText: 'Select Role',
-                  border: OutlineInputBorder(),
-                ),
-              ),
               const SizedBox(height: 30),
               ElevatedButton(
                 onPressed: isLoading ? null : loginUser,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green[800],
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
+                  padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 child: isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Login',
-                    style: TextStyle(fontSize: 18, color: Colors.black)),
+                    : const Text(
+                  'Login',
+                  style: TextStyle(fontSize: 18, color: Colors.black),
+                ),
               ),
               const SizedBox(height: 20),
               TextButton(

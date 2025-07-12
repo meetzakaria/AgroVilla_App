@@ -17,8 +17,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
-  String selectedRole = 'Customer';
-  final List<String> roles = ['Customer', 'Seller', 'Admin'];
+  String selectedRole = 'CUSTOMER';
+  final List<String> roles = ['CUSTOMER', 'SELLER'];
 
   bool isLoading = false;
 
@@ -46,14 +46,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       isLoading = true;
     });
 
-    const String apiUrl = "http://192.168.0.90:8081/api/auth/register"; // for emulator
+    const String apiUrl = "http://10.146.146.45:8081/api/auth/register"; // for emulator
 
     final Map<String, dynamic> requestBody = {
       "name": name,
       "phoneNumber": phoneNumber,
       "password": password,
       "role": selectedRole,
-      "sellerStatus": selectedRole == "Seller" ? "ACTIVE" : "N/A",
+      "sellerStatus": "APPROVED",
     };
 
     try {
@@ -164,7 +164,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               child: isLoading
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('Register', style: TextStyle(fontSize: 18)),
+                  : const Text('Register', style: TextStyle(fontSize: 18, color: Colors.black)),
             ),
             const SizedBox(height: 20),
             TextButton(
