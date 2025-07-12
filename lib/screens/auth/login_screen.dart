@@ -45,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => isLoading = true);
 
-    const String apiUrl = "http://10.146.146.45:8081/api/auth/login";
+    const String apiUrl = "http://10.20.238.45:8081/api/auth/login";
 
     try {
       final response = await http.post(

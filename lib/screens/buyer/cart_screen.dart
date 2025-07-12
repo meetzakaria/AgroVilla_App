@@ -1,127 +1,107 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'buyer_home_screen.dart';
+import 'checkout_screen.dart'; // <-- Make sure to create this screen
 
 class CartScreen extends StatefulWidget {
-  const CartScreen({super.key});
+  final List<ProductModel> cart;
+  const CartScreen({super.key, required this.cart});
 
   @override
   State<CartScreen> createState() => _CartScreenState();
 }
 
 class _CartScreenState extends State<CartScreen> {
-  List<Map<String, dynamic>> cartItems = [
-    {
-      'name': 'Hybrid Tomato Seeds',
-      'price': 120,
-      'quantity': 1,
-      'image': 'https://via.placeholder.com/150'
-    },
-    {
-      'name': 'Organic Fertilizer',
-      'price': 300,
-      'quantity': 1,
-      'image': 'https://via.placeholder.com/150'
-    }
-  ];
+  late List<ProductModel> cartItems;
 
-  double get totalPrice {
-    return cartItems.fold(
-        0,
-            (sum, item) =>
-        sum + (item['price'] as int) * (item['quantity'] as int));
+  @override
+  void initState() {
+    super.initState();
+    cartItems = List.from(widget.cart);
   }
 
-  void increaseQty(int index) {
-    setState(() {
-      cartItems[index]['quantity']++;
-    });
-  }
-
-  void decreaseQty(int index) {
-    setState(() {
-      if (cartItems[index]['quantity'] > 1) {
-        cartItems[index]['quantity']--;
-      }
-    });
-  }
-
-  void removeItem(int index) {
+  void removeFromCart(int index) {
     setState(() {
       cartItems.removeAt(index);
     });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("❌ Removed from cart")),
+    );
+  }
+
+  void returnUpdatedCart() {
+    Navigator.pop(context, cartItems);
+  }
+
+  void goToCheckout() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => CheckoutScreen(cartItems: cartItems)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Your Cart"),
-        backgroundColor: Colors.green[800],
-      ),
-      body: cartItems.isEmpty
-          ? const Center(child: Text("🛒 Your cart is empty"))
-          : Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: cartItems.length,
-              itemBuilder: (context, index) {
-                final item = cartItems[index];
-                return Card(
-                  margin:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  child: ListTile(
-                    leading: Image.network(item['image'], width: 50),
-                    title: Text(item['name']),
-                    subtitle:
-                    Text("৳${item['price']} x ${item['quantity']}"),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                            onPressed: () => decreaseQty(index),
-                            icon: const Icon(Icons.remove)),
-                        Text('${item['quantity']}'),
-                        IconButton(
-                            onPressed: () => increaseQty(index),
-                            icon: const Icon(Icons.add)),
-                        IconButton(
-                            onPressed: () => removeItem(index),
-                            icon: const Icon(Icons.delete_outline)),
-                      ],
+    return WillPopScope(
+      onWillPop: () async {
+        returnUpdatedCart(); // when back button pressed
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Your Cart"),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: returnUpdatedCart,
+          ),
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: cartItems.isEmpty
+                  ? const Center(child: Text("🛒 Your cart is empty"))
+                  : ListView.builder(
+                itemCount: cartItems.length,
+                itemBuilder: (_, index) {
+                  final product = cartItems[index];
+                  return ListTile(
+                    leading: Image.memory(
+                      base64Decode(product.imageBase64),
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                    ),
+                    title: Text(product.name),
+                    subtitle: Text("৳ ${product.price}"),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => removeFromCart(index),
+                    ),
+                  );
+                },
+              ),
+            ),
+            if (cartItems.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Colors.green[800],
+                    ),
+                    onPressed: goToCheckout,
+                    child: const Text(
+                      "Proceed to Checkout",
+                      style: TextStyle(fontSize: 16, color: Colors.white),
                     ),
                   ),
-                );
-              },
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.green.shade100,
-              borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(16)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text("Total: ৳$totalPrice",
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
-                IconButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context, MaterialPageRoute(builder: (_) => const CartScreen()));
-                  },
-                  icon: const Icon(Icons.shopping_cart),
-                )
-
-              ],
-            ),
-          )
-        ],
+                ),
+              )
+          ],
+        ),
       ),
     );
   }
 }
-

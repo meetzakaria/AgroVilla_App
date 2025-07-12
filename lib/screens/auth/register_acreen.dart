@@ -46,7 +46,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       isLoading = true;
     });
 
-    const String apiUrl = "http://10.146.146.45:8081/api/auth/register"; // for emulator
+    const String apiUrl = "http://10.20.238.45:8081/api/auth/register"; // for emulator
 
     final Map<String, dynamic> requestBody = {
       "name": name,
